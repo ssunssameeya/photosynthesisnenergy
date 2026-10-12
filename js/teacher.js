@@ -3,13 +3,26 @@
   var NAMES = { a1: '1 필요한 물질', a23: '2·3 광합성 실험', a4: '4 환경 요인', a5: '5 인공 광합성', a6: '6 호흡', a7: '7 모형', a8: '8 양분 저장' };
   var STATE = { locked: '잠김', open: '활동 중', done: '활동 끝남' };
   var KEYNAME = { predict: '예상', reason: '이유', hyp: '새 가설', summary: '정리 문장', ruleA: '규칙 ①', ruleB: '규칙 ②', revise: '고친 가설', idea: '내 생각', guess: '예상' };
-  var T = { pw: '', data: null, tab: 'prog', cls: CFG.CLASSES[0], act: 'a1', sel: {} };
-  function call(req) { req.tpw = T.pw; req.classes = CFG.CLASSES; return API.call(req); }
+  var T = { pw: '', data: null, tab: 'prog', classes: CFG.CLASSES.slice(), cls: CFG.CLASSES[0], act: 'a1', sel: {} };
+  function clsLabel(c) { return c === '' ? '반 미입력' : (/^\d+$/.test(c) ? c + '반' : c); }
+  function call(req) { req.tpw = T.pw; req.classes = T.classes; return API.call(req); }
   function el() { return h.apply(null, arguments); }
-  function load() { return call({ action: 'tOverview' }).then(function (r) { if (r.ok) T.data = r; return r; }); }
+  function load() {                       // 시트에 적힌 반 이름을 그대로 읽어 진도표의 반 목록으로 씁니다
+    return call({ action: 'tOverview' }).then(function (r) {
+      if (!r.ok) return r;
+      var seen = {}, found = [];
+      r.students.forEach(function (s) { var c = String(s.cls == null ? '' : s.cls); if (!seen[c]) { seen[c] = 1; found.push(c); } });
+      found.sort(function (a, b) { return a.localeCompare(b, 'ko', { numeric: true }); });
+      if (found.length && found.join('|') !== T.classes.join('|')) {
+        T.classes = found; if (found.indexOf(T.cls) < 0) T.cls = found[0];
+        return call({ action: 'tOverview' }).then(function (r2) { if (r2.ok) T.data = r2; return r2; });
+      }
+      T.data = r; return r;
+    });
+  }
   function inCls() { return T.data.students.filter(function (s) { return String(s.cls) === String(T.cls); }).sort(function (a, b) { return a.id < b.id ? -1 : 1; }); }
   function clsPick(onChange) {
-    var s = el('select', { class: 'tsel' }); CFG.CLASSES.forEach(function (c) { s.append(el('option', { value: c }, c + '반')); }); s.value = T.cls;
+    var s = el('select', { class: 'tsel' }); T.classes.forEach(function (c) { s.append(el('option', { value: c }, clsLabel(c))); }); s.value = T.cls;
     s.addEventListener('change', function () { T.cls = s.value; T.sel = {}; onChange(); }); return s;
   }
 
@@ -37,8 +50,8 @@
     prog: function (p) {
       var acts = ['a1', 'a23', 'a4', 'a5', 'a6', 'a7', 'a8'];
       var tb = el('table', { class: 'data ttable' }, el('tr', {}, el('th', {}, '반'), acts.map(function (a) { return el('th', {}, NAMES[a]); })));
-      CFG.CLASSES.forEach(function (c) {
-        var tr = el('tr', {}, el('th', {}, c + '반'));
+      T.classes.forEach(function (c) {
+        var tr = el('tr', {}, el('th', {}, clsLabel(c)));
         acts.forEach(function (a) {
           var g = T.data.progress[c][a], td = el('td', { class: 'pc st-' + g.state }, el('b', {}, a === 'a5' ? '항상 열림' : STATE[g.state]), el('small', {}, ' 완료 ' + g.pct + '%'));
           function set(st) { call({ action: 'tOpen', cls: c, act: a, state: st }).then(function () { load().then(draw); }); }
