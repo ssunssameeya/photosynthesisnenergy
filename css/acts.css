@@ -102,6 +102,13 @@
 .leafpic svg{width:150px;height:auto}
 .eqline{margin:0;font-size:18px;font-weight:700;background:var(--mint);border-radius:10px;padding:8px 12px}
 
+.prow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;padding:8px;border-radius:12px}
+.prow.ps{background:#e3f6e6}.prow.rs{background:#fdeadd}
+.ptag{min-width:5em;text-align:center;border-radius:999px;padding:2px 12px;color:#fff;background:#2f9d5c}.prow.rs .ptag{background:#e0733a}
+.leafpic.small svg{width:110px}
+.flowpic svg{width:100%;max-width:760px;height:auto;display:block;margin:0 auto}
+.flowpic text{font-family:var(--f-body)}
+
 /* 활동 8: 농산물 야시장 */
 .act.market{background:linear-gradient(#1b2145,#3a2a55 55%,#5a3b2e)}
 .act.market .act-head{background:#2a1f3f;color:#fff;border-color:#ffb02e}.act.market .act-head h2{color:#ffcf6b}
