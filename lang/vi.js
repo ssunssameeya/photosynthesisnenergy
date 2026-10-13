@@ -126,3 +126,22 @@ a8_s3_todo: 'Tổng kết bằng một câu: cây dùng chất dinh dưỡng và
 a8_use: 'Chất dinh dưỡng được dùng trong {0} để lấy năng lượng cho hoạt động sống, trở thành nguyên liệu {1} cơ thể cây, và phần còn lại {2}.',
 a8_build: 'xây dựng', a8_break: 'phân giải', a8_store: 'được dự trữ', a8_throw: 'bị bỏ đi'
 };
+/* 2차 수정: 활동 7 모형 단계와 호흡 문장 */
+Object.assign(LANG.vi, {
+"a7_sum1": "Quang hợp: hấp thụ {0}, dùng {1} và nước để tạo ra {2} và khí oxi.",
+"a7_sum2": "Hô hấp: dùng {1} để phân giải {0}, lấy {2} cần cho hoạt động sống. Khi đó khí cacbonic và nước được tạo ra.",
+"a7_s2_todo": "Với quang hợp và với hô hấp, hãy kéo thả mô hình khí để chỉ ra khí đi vào lá và khí đi ra khỏi lá. Sau đó đổi cường độ ánh sáng và so sánh các mũi tên.",
+"a7_model_t": "Mô hình trao đổi khí của hai quá trình",
+"a7_s2ok": "Trong quang hợp và hô hấp, chiều di chuyển của các khí ngược nhau. Hai quá trình có thể diễn ra cùng lúc trong cùng một lá.",
+"a7_view_t": "Lượng khí trao đổi theo cường độ ánh sáng",
+"a7_thick": "Mũi tên càng dày thì lượng khí di chuyển càng nhiều. Hãy bấm từng mức ánh sáng để so sánh.",
+"a7_none": "Quang hợp: không diễn ra",
+"a7_v0": "Không có ánh sáng thì quang hợp không diễn ra, chỉ có hô hấp. Vì vậy ta chỉ thấy khí oxi đi vào và khí cacbonic đi ra.",
+"a7_v1": "Quang hợp và hô hấp diễn ra với lượng bằng nhau. Cả hai khí đều đi vào và đi ra nhưng lượng bằng nhau, nên nhìn bên ngoài như không có gì thay đổi.",
+"a7_v2": "Hô hấp vẫn diễn ra, nhưng quang hợp mạnh hơn nhiều. Vì vậy nhìn bên ngoài ta thấy khí cacbonic đi vào và khí oxi đi ra.",
+"a7_mq": "Ở lá được chiếu ánh sáng mạnh, hô hấp sẽ thế nào?",
+"a7_m1": "Hô hấp dừng lại, chỉ còn quang hợp",
+"a7_m2": "Hô hấp vẫn diễn ra, nhưng bị che lấp vì lượng quang hợp lớn hơn",
+"a7_m3": "Hô hấp mạnh hơn quang hợp",
+"a7_mok": "Hô hấp luôn diễn ra khi cây còn sống. Khi ánh sáng mạnh, lượng quang hợp lớn hơn lượng hô hấp nên ta không nhìn thấy hô hấp mà thôi."
+});
