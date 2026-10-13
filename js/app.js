@@ -2,7 +2,24 @@
 var ACT = {};          // 활동 모듈이 여기에 등록됩니다: ACT.a1 = { title, steps, ... }
 var App = {
   me: null, st: null, id: '', pw: '', tab: 'plant',
-  send: function (req) { req.id = App.id; req.pw = App.pw; return API.call(req).then(function (r) { if (r && r.ok && r.me) { App.st = r; App.me = r.me; } return r; }); },
+  queue: [], lastSync: 0,
+  /* 답은 쓸 때마다 보내지 않고 모아 두었다가 활동을 마칠 때 한 번에 보냅니다 (동시 접속 부담 줄이기) */
+  send: function (req) {
+    if (req.action === 'answer') { App.queue.push({ act: req.act, key: req.key, text: req.text }); if (App.queue.length >= 10) App.flush(); return Promise.resolve({ ok: true }); }
+    var sent = null;
+    if (req.action === 'done' && App.queue.length) { sent = App.queue; App.queue = []; req.answers = sent; }
+    req.id = App.id; req.pw = App.pw;
+    return API.call(req).then(function (r) {
+      if (r && r.ok && r.me) { App.st = r; App.me = r.me; App.lastSync = Date.now(); App.me.ans = App.me.ans || {}; App.queue.forEach(function (q) { App.me.ans[q.act + '.' + q.key] = q.text; }); }
+      else if (sent && !(r && r.ok)) App.queue = sent.concat(App.queue);
+      return r;
+    });
+  },
+  flush: function () {
+    if (!App.queue.length || !App.id) return;
+    var q = App.queue; App.queue = [];
+    API.call({ action: 'answers', id: App.id, pw: App.pw, list: q }).then(function (r) { if (!(r && r.ok)) App.queue = q.concat(App.queue); });
+  },
   errMsg: function (r) { return t('err_' + (r && r.err || 'net')); },
 
   /* ---------- 로그인 ---------- */
@@ -56,7 +73,7 @@ var App = {
       r.sp ? null : [h('label', { k: 'lb_sp' }), picks, h('p', { class: 'hint', k: 'sp_hint' })],
       btn('startGrow', go, 'btn primary big'), msg));
   },
-  logout: function () { try { sessionStorage.removeItem('garden5-sess'); } catch (e) {} App.me = null; App.login(); },
+  logout: function () { App.flush(); try { sessionStorage.removeItem('garden5-sess'); } catch (e) {} App.me = null; App.login(); },
 
   /* ---------- 홈 (탭) ---------- */
   home: function (tab) {
@@ -70,7 +87,8 @@ var App = {
     var pane = h('div', { class: 'pane pane-' + App.tab });
     root.append(h('header', { class: 'topbar' }, h('h1', { k: 'site' }), tabs, who), pane);
     App['draw_' + App.tab](pane); applyI18n(root);
-    App.send({ action: 'state' }).then(function (r) { if (r.ok && $('#app').className === 'view-home') { pane.innerHTML = ''; App['draw_' + App.tab](pane); who.children[1].textContent = ' · ' + App.me.xp + ' XP'; applyI18n(pane); } });
+    App.flush();
+    if (Date.now() - App.lastSync > 15000) App.send({ action: 'state' }).then(function (r) { if (r.ok && $('#app').className === 'view-home') { pane.innerHTML = ''; App['draw_' + App.tab](pane); who.children[1].textContent = ' · ' + App.me.xp + ' XP'; applyI18n(pane); } });
   },
   logLabel: function (k) {
     var all = CFG.ITEMS.concat(CFG.EVENTS).filter(function (x) { return x.id === k; })[0];
@@ -156,6 +174,7 @@ var App = {
   }
 };
 
+window.addEventListener('pagehide', function () { App.flush(); });
 window.addEventListener('DOMContentLoaded', function () {
   buildLangBar();
   var s = null; try { s = JSON.parse(sessionStorage.getItem('garden5-sess')); } catch (e) {}
