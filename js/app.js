@@ -3,6 +3,8 @@ var ACT = {};          // 활동 모듈이 여기에 등록됩니다: ACT.a1 = {
 var App = {
   me: null, st: null, id: '', pw: '', tab: 'plant',
   queue: [], lastSync: 0,
+  /* 로그인이 한순간에 몰리지 않도록 학생마다 0~ms 사이에서 무작위로 잠깐 기다립니다 (연습 모드에서는 기다리지 않음) */
+  spread: function (ms) { return new Promise(function (r) { setTimeout(r, API.local ? 0 : Math.random() * ms); }); },
   /* 답은 쓸 때마다 보내지 않고 모아 두었다가 활동을 마칠 때 한 번에 보냅니다 (동시 접속 부담 줄이기) */
   send: function (req) {
     if (req.action === 'answer') { App.queue.push({ act: req.act, key: req.key, text: req.text }); if (App.queue.length >= 10) App.flush(); return Promise.resolve({ ok: true }); }
@@ -27,12 +29,13 @@ var App = {
     var root = $('#app'); root.className = 'view-login';
     var id = h('input', { id: 'f-id', inputmode: 'numeric', autocomplete: 'off', 'data-kp': 'ph_id', placeholder: t('ph_id') });
     var pw = h('input', { id: 'f-pw', type: 'password', 'data-kp': 'ph_pw', placeholder: t('ph_pw') });
-    var msg = h('p', { class: 'formmsg' });
+    var msg = h('p', { class: 'formmsg' }), busy = false;
     function go() {
       App.id = id.value.trim(); if (!App.id) return;
       App.pw = API.hashPw(App.id, pw.value);
-      msg.textContent = t('loading');
-      App.send({ action: 'login' }).then(function (r) {
+      msg.textContent = t('loading'); if (busy) return; busy = true;
+      App.spread(3000).then(function () { return App.send({ action: 'login' }); }).then(function (r) {
+        busy = false;
         if (!r.ok) { msg.textContent = App.errMsg(r); return; }
         try { sessionStorage.setItem('garden5-sess', JSON.stringify({ id: App.id, pw: App.pw })); } catch (e) {}
         if (r.setup) App.setup(r, pw.value); else App.home('plant');
@@ -178,6 +181,6 @@ window.addEventListener('pagehide', function () { App.flush(); });
 window.addEventListener('DOMContentLoaded', function () {
   buildLangBar();
   var s = null; try { s = JSON.parse(sessionStorage.getItem('garden5-sess')); } catch (e) {}
-  if (s && s.id) { App.id = s.id; App.pw = s.pw; App.send({ action: 'login' }).then(function (r) { if (r.ok && !r.setup) App.home('plant'); else App.login(); }); }
+  if (s && s.id) { App.id = s.id; App.pw = s.pw; $('#app').className = 'view-login'; $('#app').append(h('p', { class: 'note strong', k: 'loading' })); App.spread(1500).then(function () { return App.send({ action: 'login' }); }).then(function (r) { if (r.ok && !r.setup) App.home('plant'); else App.login(); }); }
   else App.login();
 });
