@@ -19,6 +19,11 @@ function coreAddXp(db, s, x, label, now) {
   db.dirty[s.id] = 1;
   db.logs.push([now, s.id, s.name, s.cls, label, x, s.xp]);
 }
+function coreSaveAns(db, s, act, key, text, now) {      // 학생 답 저장 (최신 답은 학생 자료에, 전체 기록은 '답' 시트에)
+  s.ans = s.ans || {}; var txt = String(text || '').slice(0, 400);
+  s.ans[act + '.' + key] = txt; db.dirty[s.id] = 1;
+  db.answers.push([now, s.id, s.name, s.cls, act, key, txt]);
+}
 function coreClassPct(db, cls, act) {
   var n = 0, d = 0;
   for (var id in db.students) { var s = db.students[id]; if (String(s.cls) === String(cls)) { n++; if (s.done && s.done[act]) d++; } }
@@ -104,17 +109,14 @@ function coreHandle(db, req) {
   }
   if (a === 'done') {
     if (ACTS.indexOf(req.act) < 0) return { ok: false, err: 'action' };
+    (req.answers || []).slice(0, 40).forEach(function (x) { coreSaveAns(db, s, x.act, x.key, x.text, now); });
     if (coreActState(db, s.cls, req.act) === 'locked') return { ok: false, err: 'locked' };
     s.done = s.done || {};
     var gained = 0;
     if (!s.done[req.act]) { gained = R.done + (req.bonus ? R.bonus : 0); s.done[req.act] = { t: now, b: req.bonus ? 1 : 0 }; s.wilt = false; coreAddXp(db, s, gained, 'done_' + req.act, now); }
     var r = coreState(db, s, req); r.gained = gained; return r;
   }
-  if (a === 'answer') {
-    s.ans = s.ans || {}; var txt = String(req.text || '').slice(0, 400);
-    s.ans[req.act + '.' + req.key] = txt; db.dirty[s.id] = 1;
-    db.answers.push([now, s.id, s.name, s.cls, req.act, req.key, txt]);
-    return { ok: true };
-  }
+  if (a === 'answer') { coreSaveAns(db, s, req.act, req.key, req.text, now); return { ok: true }; }
+  if (a === 'answers') { (req.list || []).slice(0, 40).forEach(function (x) { coreSaveAns(db, s, x.act, x.key, x.text, now); }); return { ok: true }; }
   return { ok: false, err: 'action' };
 }
