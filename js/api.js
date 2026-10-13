@@ -20,6 +20,18 @@
   }
   function saveLocal(db) { delete db.dirty; delete db.answers; delete db.logs; delete db.progDirty; delete db.setDirty; try { localStorage.setItem(LKEY, JSON.stringify(db)); } catch (e) {} }
 
+  /* 서버 요청. 동시 접속으로 실패하면 학생에게 오류를 보이기 전에 조금 기다렸다가 스스로 다시 시도합니다. */
+  var NO_RETRY = { tGive: 1, tResetYear: 1 };           // 두 번 실행되면 안 되는 요청
+  function post(req, n) {
+    return fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(req), redirect: 'follow' })
+      .then(function (r) { return r.text(); })
+      .then(function (tx) { try { return JSON.parse(tx); } catch (e) { return { ok: false, err: 'net', msg: 'bad response' }; } })
+      .catch(function (e) { return { ok: false, err: 'net', msg: String(e) }; })
+      .then(function (res) {
+        if (!(res.err === 'net' || res.err === 'server') || n >= 5 || NO_RETRY[req.action]) return res;
+        return new Promise(function (r) { setTimeout(r, 700 * (n + 1) + Math.random() * 1800); }).then(function () { return post(req, n + 1); });
+      });
+  }
   window.API = {
     local: !CFG.API_URL,
     hashPw: function (id, pw) { return hash(String(id) + ':' + String(pw) + ':garden5'); },
@@ -32,9 +44,7 @@
         saveLocal(db);
         return new Promise(function (r) { setTimeout(function () { r(res); }, 120); });
       }
-      return fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(req), redirect: 'follow' })
-        .then(function (r) { return r.json(); })
-        .catch(function (e) { return { ok: false, err: 'net', msg: String(e) }; });
+      return post(req, 0);
     }
   };
 })();
