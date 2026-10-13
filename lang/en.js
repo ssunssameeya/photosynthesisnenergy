@@ -126,3 +126,22 @@ a8_s3_todo: 'Summarise in one sentence how a plant uses its nutrients.',
 a8_use: 'Nutrients are used in {0} to get the energy needed for life, they become material that {1} the plant\'s body, and the rest {2}.',
 a8_build: 'builds', a8_break: 'breaks down', a8_store: 'is stored', a8_throw: 'is thrown away'
 };
+/* 2차 수정: 활동 7 모형 단계와 호흡 문장 */
+Object.assign(LANG.en, {
+"a7_sum1": "Photosynthesis: absorbs {0} and makes {2} and oxygen from {1} and water.",
+"a7_sum2": "Respiration: uses {1} to break down {0} and gets the {2} needed for life. Carbon dioxide and water are produced.",
+"a7_s2_todo": "For photosynthesis and for respiration, drag the gas models to show which gas enters the leaf and which leaves it. Then change the light and compare the arrows.",
+"a7_model_t": "Gas exchange model of the two processes",
+"a7_s2ok": "In photosynthesis and respiration the gases move in opposite directions. Both processes can happen in the same leaf at the same time.",
+"a7_view_t": "Amount of gas exchange at each light level",
+"a7_thick": "A thicker arrow means more gas is moving. Tap each light level to compare.",
+"a7_none": "Photosynthesis: not happening",
+"a7_v0": "With no light, photosynthesis does not happen and only respiration happens. So we only see oxygen going in and carbon dioxide coming out.",
+"a7_v1": "Photosynthesis and respiration happen in equal amounts. Both gases move in and out, but the amounts are equal, so from outside nothing seems to change.",
+"a7_v2": "Respiration still continues, but photosynthesis is much more active. So from outside we see carbon dioxide going in and oxygen coming out.",
+"a7_mq": "What happens to respiration in a leaf under strong light?",
+"a7_m1": "Respiration stops and only photosynthesis happens",
+"a7_m2": "Respiration continues, but it is hidden because there is more photosynthesis",
+"a7_m3": "Respiration becomes more active than photosynthesis",
+"a7_mok": "Respiration happens all the time while the plant is alive. In strong light it is simply hidden because photosynthesis is greater than respiration."
+});
