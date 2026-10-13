@@ -11,16 +11,35 @@
       });
       box.append(todo('a7_s1_todo'), note('a7_s1_desc', 'strong'), grid);
     },
-    function (box, ctx) {                                     // 잎 모형: 기체 화살표
-      var S = {}; ['SI', 'SO', 'DI', 'DO'].forEach(function (k) { S[k] = h('div', { 'data-slot': k }); });
-      var board = dragBoard([{ id: 'co2_1', k: 'm_co2', html: MOL.co2 }, { id: 'o2_1', k: 'm_o2', html: MOL.o2 }, { id: 'co2_2', k: 'm_co2', html: MOL.co2 }, { id: 'o2_2', k: 'm_o2', html: MOL.o2 }], [S.SI, S.SO, S.DI, S.DO]);
-      function model(tk, i, o, cls) { return h('div', { class: 'panel leafmodel ' + cls }, h('h3', { k: tk }), h('div', { class: 'lm' }, h('div', { class: 'io' }, h('b', { k: 'a7_in' }), i, h('span', { class: 'arr' }, '→')), h('div', { class: 'leafpic', html: leafSvg }), h('div', { class: 'io' }, h('span', { class: 'arr' }, '→'), o, h('b', { k: 'a7_out' })))); }
+    function (box, ctx) {                                     // 두 과정의 모형 → 빛에 따라 동시에 일어나는 양 비교
+      var S = {}; ['PI', 'PO', 'RI', 'RO'].forEach(function (k) { S[k] = h('div', { 'data-slot': k }); });
+      var board = dragBoard([{ id: 'co2_1', k: 'm_co2', html: MOL.co2 }, { id: 'o2_1', k: 'm_o2', html: MOL.o2 }, { id: 'co2_2', k: 'm_co2', html: MOL.co2 }, { id: 'o2_2', k: 'm_o2', html: MOL.o2 }], [S.PI, S.PO, S.RI, S.RO]);
+      function prow(tk, i, o, cls) { return h('div', { class: 'prow ' + cls }, h('b', { class: 'ptag', k: tk }), h('div', { class: 'io' }, h('span', { k: 'a7_in' }), i), h('span', { class: 'arr' }, '→'), h('div', { class: 'leafpic small', html: leafSvg }), h('span', { class: 'arr' }, '→'), h('div', { class: 'io' }, o, h('span', { k: 'a7_out' }))); }
+      var viewer = h('div', { class: 'panel', hidden: '' }), seen = {};
+      var W = { 0: [0, 9], 1: [9, 9], 2: [24, 9] };           // [광합성 화살표 굵기, 호흡 화살표 굵기]
+      function arrow(x1, x2, y, w, col) { return w ? '<line x1="' + x1 + '" y1="' + y + '" x2="' + (x2 - w * 1.2) + '" y2="' + y + '" stroke="' + col + '" stroke-width="' + w + '"/><polygon points="' + (x2 - w * 1.6) + ',' + (y - w * 1.3 - 4) + ' ' + x2 + ',' + y + ' ' + (x2 - w * 1.6) + ',' + (y + w * 1.3 + 4) + '" fill="' + col + '"/>' : ''; }
+      function draw(L) {
+        var p = W[L][0], r = W[L][1], G = '#2f9d5c', Oc = '#e0733a';
+        pic.innerHTML = '<svg viewBox="0 0 640 250"><path d="M230 125 C270 50 370 50 410 125 C370 200 270 200 230 125Z" fill="#62c56f" stroke="#2b3a2a" stroke-width="5"/><path d="M232 125 H406" stroke="#2f8f52" stroke-width="3"/>'
+          + '<text x="20" y="34" font-size="20" font-weight="700" fill="' + G + '" data-k="a7_ps"></text><text x="20" y="232" font-size="20" font-weight="700" fill="' + Oc + '" data-k="a7_rs"></text>'
+          + (p ? arrow(110, 232, 86, p, G) + arrow(408, 530, 86, p, G) + '<text x="100" y="92" text-anchor="end" font-size="17" font-weight="700" data-k="m_co2"></text><text x="540" y="92" font-size="17" font-weight="700" data-k="m_o2"></text>'
+               : '<text x="320" y="34" text-anchor="middle" font-size="17" fill="#888" data-k="a7_none"></text>')
+          + arrow(110, 232, 164, r, Oc) + arrow(408, 530, 164, r, Oc) + '<text x="100" y="170" text-anchor="end" font-size="17" font-weight="700" data-k="m_o2"></text><text x="540" y="170" font-size="17" font-weight="700" data-k="m_co2"></text></svg>';
+        cap.setAttribute('data-k', 'a7_v' + L); cap.textContent = t('a7_v' + L); applyI18n(pic);
+        seen[L] = 1; if (Object.keys(seen).length === 3) quiz.hidden = false;
+      }
+      var pic = h('div', { class: 'flowpic' }), cap = h('p', { class: 'note result' });
+      var lights = pickOne(['a7_L0', 'a7_L1', 'a7_L2'], function (k) { draw(+k.slice(-1)); }, 'inline');
+      var quiz = h('div', { hidden: '' }, choice('a7_mq', ['a7_m1', 'a7_m2', 'a7_m3'], 1, function () { quiz.append(note('a7_mok', 'result')); applyI18n(quiz); ctx.ready(); }, ctx.miss));
+      viewer.append(h('h3', { k: 'a7_view_t' }), note('a7_thick', 'strong'), lights, pic, cap, quiz);
       var ck = btn('check', function () {
-        var want = { SI: 'co2', SO: 'o2', DI: 'o2', DO: 'co2' }, ok = true;
+        var want = { PI: 'co2', PO: 'o2', RI: 'o2', RO: 'co2' }, ok = true;
         for (var k in want) { var g = (board.get(k) || '').split('_')[0] === want[k]; board.mark(k, g); if (!g) ok = false; }
-        if (ok) { board.lock(); ck.remove(); box.append(note('a7_s2ok', 'result')); applyI18n(box); ctx.ready(); } else { ctx.miss(); toast(t('try_again'), 'bad'); }
+        if (ok) { board.lock(); ck.remove(); board.tray.remove(); model.append(note('a7_s2ok', 'result')); viewer.hidden = false; applyI18n(box); lights.children[0].click(); viewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        else { ctx.miss(); toast(t('try_again'), 'bad'); }
       }, 'btn primary');
-      box.append(todo('a7_s2_todo'), h('div', { class: 'cols' }, model('a7_L2', S.SI, S.SO, 'day'), model('a7_L0', S.DI, S.DO, 'nightm')), board.tray, ck);
+      var model = h('div', { class: 'panel' }, h('h3', { k: 'a7_model_t' }), prow('a7_ps', S.PI, S.PO, 'ps'), prow('a7_rs', S.RI, S.RO, 'rs'), board.tray, ck);
+      box.append(todo('a7_s2_todo'), model, viewer);
     },
     function (box, ctx) {                                     // 물질과 에너지 정리
       var f1 = fillBlank('a7_sum1', [{ opts: ['w_lightE', 'w_heatE'], ans: 'w_lightE' }, { opts: ['m_co2', 'm_o2', 'm_glu'], ans: 'm_co2' }, { opts: ['m_glu', 'm_co2', 'w_water'], ans: 'm_glu' }]);
