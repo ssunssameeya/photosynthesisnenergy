@@ -13,9 +13,9 @@ window.CFG = {
         단계를 늘리거나 줄여도 됩니다. (그림은 5단계까지 준비되어 있어 6단계부터는 5단계 그림을 씁니다) */
   LEVELS: [
     { need: 0,   name: { ko: '씨앗',   en: 'Seed' } },
-    { need: 30,  name: { ko: '새싹',   en: 'Sprout' } },
-    { need: 80,  name: { ko: '어린 식물', en: 'Seedling' } },
-    { need: 150, name: { ko: '꽃 피는 식물', en: 'Blooming' } },
+    { need: 15,  name: { ko: '새싹',   en: 'Sprout' } },
+    { need: 50,  name: { ko: '어린 식물', en: 'Seedling' } },
+    { need: 120, name: { ko: '꽃 피는 식물', en: 'Blooming' } },
     { need: 250, name: { ko: '열매 맺은 식물', en: 'Fruiting' } }
   ],
 
